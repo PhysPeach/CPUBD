@@ -530,7 +530,7 @@ void System::procedure() {
 
 	initSys();
 	setdt_T(dt_BD, T);
-	double tag = 10 * dt;
+	double tag = 10;
 
 	cout << "Start time loop: ID = " << id << endl;
 	cout << "Time = " << tmax << endl;
