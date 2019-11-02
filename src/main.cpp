@@ -2,11 +2,11 @@
 #include <ctime>
 using namespace std;
 
-#include "./hpp/MT.h"
-#include "./hpp/gaussian_rand.hpp"
-#include "./hpp/Parameters.hpp"
-#include "./hpp/Particle.hpp"
-#include "./hpp/System.hpp"
+#include "../hpp/MT.h"
+#include "../hpp/gaussian_rand.hpp"
+#include "../hpp/Parameters.hpp"
+#include "../hpp/Particle.hpp"
+#include "../hpp/System.hpp"
 
 template <typename T>
 T pow_tmp(T x, int y) {
@@ -34,18 +34,11 @@ int IDe;
 
 int main(int argc, char** argv){
     
-	//IDs = atoi(argv[1]);
-	//IDe = atoi(argv[2]);
-    //N = atoi(argv[3]);
-	//Tfin = atof(argv[4]);
-	//char tscale = atoi(argv[5]);
-
-	//test code
-	N = 300;
-	Tfin = 1;
-	char tscale = 7;
-	IDs = 0;
-	IDe = 0;
+	IDs = atoi(argv[1]);
+	IDe = atoi(argv[2]);
+    N = atoi(argv[3]);
+	Tfin = atof(argv[4]);
+	char tscale = atoi(argv[5]);
 
 	tmax = pow_tmp(2., tscale);
 	
