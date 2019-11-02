@@ -2,7 +2,7 @@
 #include <ctime>
 using namespace std;
 
-#include "../hpp/MT.h"
+#include "../hpp/MT.hpp"
 #include "../hpp/gaussian_rand.hpp"
 #include "../hpp/Parameters.hpp"
 #include "../hpp/Particle.hpp"
