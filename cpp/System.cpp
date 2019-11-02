@@ -435,23 +435,6 @@ void System::makeInitPosition() {
 	return;
 }
 
-void System::initSys() {
-
-	cout << "Start Initialisation: ID = " << id << endl;
-
-	setdt_T(dt_init, Tfin);
-
-	makeInitPosition();
-
-	setdt_T(dt_BD, Tfin);
-
-	equilibrateSys(0.37 * tmax);
-
-	cout << "End Initialisation: ID = " << id << endl;
-
-	return;
-}
-
 void System::recordSys() {
 	positionFile << t << " " << getK() << " " << getU() << "  ";
 	for (int n = 0; n < N; n++) {
@@ -526,10 +509,26 @@ System::~System() {
 	cout << "Finish! ID = " << id << endl << endl;
 }
 
+void System::initSys() {
+
+	cout << "Start Initialisation: ID = " << id << endl;
+
+	setdt_T(dt_init, Tfin);
+
+	makeInitPosition();
+
+	setdt_T(dt_BD, Tfin);
+
+	equilibrateSys(tmax);
+	setdt_T(dt_BD, Tfin);
+	cout << "End Initialisation: ID = " << id << endl;
+
+	return;
+}
+
 void System::procedure() {
 
 	initSys();
-	setdt_T(dt_BD, T);
 	double tag = 10;
 
 	cout << "Start time loop: ID = " << id << endl;
@@ -549,4 +548,9 @@ void System::procedure() {
 	}
 
 	return;
+}
+void System::benchmark(unsigned int loop){
+	for(unsigned int nt = 0; nt < loop; nt++) {
+		tDvlpBD();
+	}
 }

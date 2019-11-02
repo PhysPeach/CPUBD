@@ -8,6 +8,7 @@
 using namespace std;
 
 #include "Parameters.hpp"
+#include "gaussian_rand.hpp"
 #include "Particle.hpp"
 
 //from MT.h
@@ -52,15 +53,16 @@ private:
 
 	void makeInitPosition();
 
-	void initSys();
-
 	void recordSys();
 
 public:
 	System(int ID);
 	~System();
 
+	void initSys();
+
 	void procedure();
+	void benchmark(unsigned int loop);
 };
 
 #endif
