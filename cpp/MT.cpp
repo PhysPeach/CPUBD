@@ -50,7 +50,7 @@
    - change the file name "mt19937ar.c" -> "MT.h"
 */
 
-#include "../hpp/MT.h"
+#include "../hpp/MT.hpp"
 
 /* Period parameters */  
 

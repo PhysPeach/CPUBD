@@ -41,7 +41,7 @@ int main(int argc, char** argv){
 	//char tscale = atoi(argv[5]);
 
 	//test code
-	N = 300;
+	N = 512;
 	Tfin = 1;
 	char tscale = 7;
 	IDs = 0;

@@ -6,9 +6,7 @@
 using namespace std;
 
 #include "Parameters.hpp"
-
-//from gaussian_rand.hpp
-double gaussian_rand();
+#include "gaussian_rand.hpp"
 
 class Particle{
 private:
