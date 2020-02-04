@@ -751,7 +751,7 @@ void System::getDataMD() {
     }
     eFile.close();
     posFile.close();
-    std::cout << "Every LD steps have been done: ID = " << id << std::endl;
+    std::cout << "Every MD steps have been done: ID = " << id << std::endl;
     return;
 }
 void System::benchmark(unsigned int loop){
