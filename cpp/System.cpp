@@ -488,7 +488,6 @@ System::System(int ID) {
 
 	id = ID;
 	dt = dt_MD;
-	t = 0;
 	T = Tfin;
 	Eav = 0;
 	thermalFuctor = sqrt(2 * T / dt);
@@ -695,14 +694,14 @@ void System::getDataMD() {
 		std::cout << "getting liniarPlot datas in 5 secs" << std::endl;
 
 		std::string tLinpltName = "/tliniar.data";
-        tFile.open((NTDir + LDDir + tLinpltName).c_str());
+        tFile.open((NTDir + MDDir + tLinpltName).c_str());
 
         std::ostringstream eLinpltName;
-        eLinpltName << NTDir + LDDir + EDir << "/liniar.data";
+        eLinpltName << NTDir + MDDir + EDir << "/liniar.data";
         eFile.open(eLinpltName.str().c_str());
 
         std::ostringstream posLinpltName;
-        posLinpltName << NTDir + LDDir + posDir << "/liniar.data";
+        posLinpltName << NTDir + MDDir + posDir << "/liniar.data";
         posFile.open(posLinpltName.str().c_str());
 
         Nt = 5./dt;
@@ -722,16 +721,16 @@ void System::getDataMD() {
         eFile.close();
         tFile.close();
         std::string tLogpltName = "/tlog.data";
-        tFile.open((NTDir + LDDir + tLogpltName).c_str());
+        tFile.open((NTDir + MDDir + tLogpltName).c_str());
 	}
 
 	std::cout << "getting logPlot datas" << std::endl;
     std::ostringstream eLogpltName;
-    eLogpltName << NTDir + LDDir + EDir << "/id" << id << ".data";
+    eLogpltName << NTDir + MDDir + EDir << "/id" << id << ".data";
     eFile.open(eLogpltName.str().c_str());
 
     std::ostringstream posLogpltName;
-    posLogpltName << NTDir + LDDir + posDir << "/id" << id << ".data";
+    posLogpltName << NTDir + MDDir + posDir << "/id" << id << ".data";
     posFile.open(posLogpltName.str().c_str());
 
     Nt = tmax/dt;

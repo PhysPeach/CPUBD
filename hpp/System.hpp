@@ -20,7 +20,6 @@ class System{
 private:
 	int id;
 	double dt;
-	double t; //Time
 	double T; //Temparature
 	double Eav;
 	double thermalFuctor; //sqrt(2 * ZT * T /dt)
