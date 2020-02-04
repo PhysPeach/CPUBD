@@ -5,6 +5,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <sys/types.h>
+#include <sys/stat.h>
 using namespace std;
 
 #include "Parameters.hpp"
@@ -20,6 +22,7 @@ private:
 	double dt;
 	double t; //Time
 	double T; //Temparature
+	double Eav;
 	double thermalFuctor; //sqrt(2 * ZT * T /dt)
 	double L; //Length of Box
 
@@ -28,8 +31,13 @@ private:
 	int** list; //for list
     double* positionMemory[D];
 
-	ostringstream positionFileName;
-	ofstream positionFile;
+	//for record
+    std::string NTDir;
+	std::string LDDir;
+	std::string MDDir;
+    std::string EDir;
+    std::string posDir;
+    std::string velDir;
 
 	inline void setdt_T(double setdt, double setT) { dt = setdt; T = setT; thermalFuctor = sqrt(2 * setT / setdt); return; }
 	inline double getV(){double V = 1.0; for(char d = 0; d < D; d++){V *= L;} return V;}
@@ -42,9 +50,9 @@ private:
 
 	inline void periodic(int);
 	void culc_Interaction(); 
-	inline void tDvlpBD();
+	inline void tEvoLD();
 	void culc_harmonicInteraction();
-	void tHarmonicDvlp();
+	void tHarmonicEvo();
 
 	void updateCell2D();
 	void judgeUpdateCell();
@@ -53,7 +61,7 @@ private:
 
 	void makeInitPosition();
 
-	void recordSys();
+	void recPos(std::ofstream *of);
 
 public:
 	System(int ID);
@@ -61,7 +69,7 @@ public:
 
 	void initSys();
 
-	void procedure();
+	void getDataLD();
 	void benchmark(unsigned int loop);
 };
 
