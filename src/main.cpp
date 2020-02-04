@@ -61,8 +61,8 @@ int main(int argc, char** argv){
 		System s(id);
 		s.initSys();
         s.getDataLD();
-        //s.connectLDtoMD();
-        //s.getDataMD();
+        s.connectLDtoMD();
+		s.getDataMD();
 	}
 
 	return 0;

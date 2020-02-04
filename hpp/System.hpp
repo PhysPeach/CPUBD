@@ -51,6 +51,7 @@ private:
 	inline void periodic(int);
 	void culc_Interaction(); 
 	inline void tEvoLD();
+	inline void tEvoMD();
 	void culc_harmonicInteraction();
 	void tHarmonicEvo();
 
@@ -68,8 +69,10 @@ public:
 	~System();
 
 	void initSys();
+	void connectLDtoMD();
 
 	void getDataLD();
+	void getDataMD();
 	void benchmark(unsigned int loop);
 };
 

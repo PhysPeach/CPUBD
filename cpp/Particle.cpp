@@ -11,7 +11,7 @@ void Particle::init(double* xvinit, double diameter){
 	return;
 }
 
-void Particle::vDvlpBD(double dt, double thermalFuctor){
+void Particle::vEvoLD(double dt, double thermalFuctor){
 
 	for (char i = 0; i < D; i++){
 		//v += dt*F : F = -ZT * v + force_outside + fluctuation
@@ -22,15 +22,18 @@ void Particle::vDvlpBD(double dt, double thermalFuctor){
 
 	return;
 }
-void Particle::vDvlpOD(double dt, double thermalFuctor) {
-	for (char i = 0; i < D; i++) {
-		//x += F*dt/ZT : F = force_outside + fluctuation
+void Particle::halfvEvoMD(double dt){
+
+	for (char i = 0; i < D; i++){
+		//v += dt*F : F = force_outside
 		//ZT is ignored.
 		//thermalFuctor = sqrt(2 * ZT * T /dt)
-		xv[D + i] = force[i] + thermalFuctor * gaussian_rand(); //()=F(t)
+		xv[D + i] += 0.5 * dt * force[i]; //()=F(t)
 	}
+
+	return;
 }
-void Particle::xDvlp(double dt) {
+void Particle::xEvo(double dt) {
 
 	for (char i = 0; i < D; i++) {
 		xv[i] += dt * xv[D + i];

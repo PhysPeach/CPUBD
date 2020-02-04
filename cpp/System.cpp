@@ -179,7 +179,7 @@ inline void System::tEvoLD() {
 	culc_Interaction();
 
 	for (int i = 0; i < N; i++) {
-		p[i].vDvlpBD(dt, thermalFuctor);
+		p[i].vEvoLD(dt, thermalFuctor);
 	}
 
 	for (char d = 0; d < D; d++) {
@@ -189,7 +189,33 @@ inline void System::tEvoLD() {
 		}
 	}
 	for (int i = 0; i < N; i++) {
-		p[i].xDvlp(dt);
+		p[i].xEvo(dt);
+		periodic(i);
+	}
+	judgeUpdateCell();
+	return;
+}
+inline void System::tEvoMD(){
+	static unsigned short c = 0;
+	c++;
+	for (int i = 0; i < N; i++) {
+		p[i].halfvEvoMD(dt);
+	}
+	culc_Interaction();
+	for (int i = 0; i < N; i++) {
+		p[i].halfvEvoMD(dt);
+	}
+	if(c >= 1000){
+		c = 0;
+		for (char d = 0; d < D; d++) {
+		double vtmp = getvg(d);
+		for (int n = 0; n < N; n++) {
+			p[n].resetv(d, p[n].getv(d) - vtmp);
+		}
+	}
+	}
+	for (int i = 0; i < N; i++) {
+		p[i].xEvo(dt);
 		periodic(i);
 	}
 	judgeUpdateCell();
@@ -260,7 +286,7 @@ inline void System::tHarmonicEvo() {
 	culc_harmonicInteraction();
 
 	for (int i = 0; i < N; i++) {
-		p[i].vDvlpBD(dt, 0);
+		p[i].vEvoLD(dt, 0);
 	}
 	double vtmp;
 	for (char d = 0; d < D; d++) {
@@ -270,7 +296,7 @@ inline void System::tHarmonicEvo() {
 		}
 	}
 	for (int i = 0; i < N; i++) {
-		p[i].xDvlp(dt);
+		p[i].xEvo(dt);
 		periodic(i);
 	}
 	judgeUpdateCell();
@@ -548,6 +574,25 @@ void System::initSys() {
 	return;
 }
 
+void System::connectLDtoMD(){
+	float Ecrr;
+    float dE2;
+    float OK = 0.002 * 0.002;
+    setdt_T(dt_MD, Tfin);
+    std::cout << "connecting LD to MD" << std::endl;
+    while(1){
+        Ecrr = getK() + getU();
+        dE2 = Ecrr - Eav;
+        dE2 *= dE2;
+        if(dE2 <= OK){
+            break;
+        }
+        tEvoLD();
+    }
+    std::cout << " -> done! at Ecrr = " << Ecrr << std::endl;
+    return;
+}
+
 void System::getDataLD() {
 
 	std::cout << "Starting LD time loop: ID = " << id << std::endl;
@@ -628,6 +673,80 @@ void System::getDataLD() {
     }
     Eav /= (float)numOfEnsemble;
     std::cout <<"Ensemble: " <<numOfEnsemble << ", Eav = " << Eav << std::endl;
+    if(id == 1){
+        tFile.close();
+    }
+    eFile.close();
+    posFile.close();
+    std::cout << "Every LD steps have been done: ID = " << id << std::endl;
+    return;
+}
+void System::getDataMD() {
+
+	std::cout << "Starting MD time loop: ID = " << id << std::endl;
+    unsigned int Nt;
+    unsigned int ntAtOutput;
+
+	std::ofstream tFile;
+	std::ofstream eFile;
+	std::ofstream posFile;
+
+	if(id == 1){
+		std::cout << "getting liniarPlot datas in 5 secs" << std::endl;
+
+		std::string tLinpltName = "/tliniar.data";
+        tFile.open((NTDir + LDDir + tLinpltName).c_str());
+
+        std::ostringstream eLinpltName;
+        eLinpltName << NTDir + LDDir + EDir << "/liniar.data";
+        eFile.open(eLinpltName.str().c_str());
+
+        std::ostringstream posLinpltName;
+        posLinpltName << NTDir + LDDir + posDir << "/liniar.data";
+        posFile.open(posLinpltName.str().c_str());
+
+        Nt = 5./dt;
+        ntAtOutput = 0;
+        for(unsigned int nt = 0; nt < Nt; nt++){
+            tEvoLD();
+            if(nt >= ntAtOutput){
+                if(id == 1){
+                    tFile << nt * dt << std::endl;
+                }
+                eFile << getK() << " " << getU() << " " << std::endl;
+                recPos(&posFile);
+                ntAtOutput += 0.1/dt;
+            }
+        }
+        posFile.close();
+        eFile.close();
+        tFile.close();
+        std::string tLogpltName = "/tlog.data";
+        tFile.open((NTDir + LDDir + tLogpltName).c_str());
+	}
+
+	std::cout << "getting logPlot datas" << std::endl;
+    std::ostringstream eLogpltName;
+    eLogpltName << NTDir + LDDir + EDir << "/id" << id << ".data";
+    eFile.open(eLogpltName.str().c_str());
+
+    std::ostringstream posLogpltName;
+    posLogpltName << NTDir + LDDir + posDir << "/id" << id << ".data";
+    posFile.open(posLogpltName.str().c_str());
+
+    Nt = tmax/dt;
+    ntAtOutput = 10;
+    for(unsigned int nt = 0; nt <= Nt; nt++){
+        tEvoMD();
+        if(nt >= ntAtOutput){
+            if(id == 1){
+                tFile << nt * dt << std::endl;
+            }
+            eFile << getK() << " " << getU() << std::endl;
+            recPos(&posFile);
+            ntAtOutput *= 1.3;
+        }
+    }
     if(id == 1){
         tFile.close();
     }
