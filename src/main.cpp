@@ -59,7 +59,10 @@ int main(int argc, char** argv){
 	
 	for (int id = IDs; id <= IDe; id++) {
 		System s(id);
-		s.procedure();
+		s.initSys();
+        s.getDataLD();
+        //s.connectLDtoMD();
+        //s.getDataMD();
 	}
 
 	return 0;

@@ -173,7 +173,7 @@ void System::culc_Interaction(){
 
 	return;
 }
-inline void System::tDvlpBD() {
+inline void System::tEvoLD() {
 	//temporal development of the system
 
 	culc_Interaction();
@@ -254,7 +254,7 @@ void System::culc_harmonicInteraction() {
 
 	return;
 }
-inline void System::tHarmonicDvlp() {
+inline void System::tHarmonicEvo() {
 	//temporal development of the system by using harmonic potential
 
 	culc_harmonicInteraction();
@@ -383,7 +383,7 @@ inline void System::equilibrateSys(double teq) {
 	cout << "Time = " << teq << endl;
 	unsigned int s = teq/dt;
 	for (unsigned int nt = 0; nt < s; nt++) {
-		tDvlpBD();
+		tEvoLD();
 	}
 	cout << " -> Edone: ID = "<< id << endl;
 	return;
@@ -417,17 +417,25 @@ void System::makeInitPosition() {
 		p[n].init(xvtmp, a2);
 	}
 
-	for (int n = 0; n < N; n++) {
-		positionFile << p[n].getDiam() << " ";
-	}
-	positionFile << endl << endl;
+	struct stat st;
+    std::ostringstream diamName;
+    diamName << "../traj/N" << N << "/diam.data";
+    if(stat(diamName.str().c_str(), &st) != 0){
+        std::ofstream diamFile;
+        diamFile.open(diamName.str().c_str());
+        std::cout << "created " << diamName.str() << std::endl;
+        for(unsigned int n = 0; n < N; n++){
+            diamFile << p[n].getDiam() << std::endl;
+	    }
+        diamFile.close();
+    }
 
 	//set posMem and list
 	updateCell2D();
 
 	//remove overraps
 	for (int nt = 0; nt < (int)(20 / dt); nt++) {
-		tHarmonicDvlp();
+		tHarmonicEvo();
 	}
 	judgeUpdateCell();
 
@@ -435,15 +443,13 @@ void System::makeInitPosition() {
 	return;
 }
 
-void System::recordSys() {
-	positionFile << t << " " << getK() << " " << getU() << "  ";
+void System::recPos(std::ofstream *of) {
 	for (int n = 0; n < N; n++) {
-		for (char d = 0; d < 2 * D; d++) {
-			positionFile << p[n].getx(d) << " ";
+		for (char d = 0; d < D; d++) {
+			*of << p[n].getx(d) << " ";
 		}
-		positionFile << " ";
 	}
-	positionFile << endl;
+	*of << endl;
 
 	return;
 }
@@ -458,8 +464,15 @@ System::System(int ID) {
 	dt = dt_MD;
 	t = 0;
 	T = Tfin;
+	Eav = 0;
 	thermalFuctor = sqrt(2 * T / dt);
 	L = sqrt(N / dnsty);
+
+	LDDir = "/LD";
+    MDDir = "/MD";
+    EDir = "/E";
+    posDir = "/pos";
+	velDir = "/vel";
 
 	//for list
 	for (char d = 0; d < D; d++) {
@@ -473,28 +486,37 @@ System::System(int ID) {
 	for (int i = 0; i < N; i++) {
 		list[i] = new int[(int)(1.5 * N * pi / (Mtmp * Mtmp))];
 	}
-	bool dir;
-	ostringstream posDir;
 
-	posDir << "../pos";
-	//dir = _mkdir(posDir.str().c_str());
+	//Make dir tree
+    std::ostringstream trajName;
+    struct stat st;
+    trajName << "../traj/N" << N;
+    if(stat(trajName.str().c_str(), &st) != 0){
+        mkdir(trajName.str().c_str(), 0755);
+        std::cout << "created " << trajName.str() << std::endl;
+    }
+    trajName << "/T" << Tfin;
+    NTDir = trajName.str();
+    if(stat(NTDir.c_str(), &st) != 0){
+        mkdir(NTDir.c_str(), 0755);
+        std::cout << "created " << NTDir << std::endl;
 
-	posDir << "/N" << N;
-	//dir = _mkdir(posDir.str().c_str());
-
-	posDir << "/T" << T;
-	//dir = _mkdir(posDir.str().c_str());
-
-	positionFileName << posDir.str() <<"/posBD_N" << N << "_T" << Tfin << "_id" << id << ".data";
-	positionFile.open(positionFileName.str().c_str());
-	
+        mkdir((NTDir + LDDir).c_str(), 0755);
+        mkdir((NTDir + LDDir + EDir).c_str(), 0755);
+        mkdir((NTDir + LDDir + posDir).c_str(), 0755);
+        mkdir((NTDir + LDDir + velDir).c_str(), 0755);
+        
+        mkdir((NTDir + MDDir).c_str(), 0755);
+        mkdir((NTDir + MDDir + EDir).c_str(), 0755);
+        mkdir((NTDir + MDDir + posDir).c_str(), 0755);
+        mkdir((NTDir + MDDir + velDir).c_str(), 0755);
+    }
 
 	cout << "Created System: ID = " << id << endl;
 
 	return;
 }
 System::~System() {
-	positionFile.close();
 
 	for (int i = 0; i < N; i++) {
 		delete[] list[i];
@@ -526,31 +548,96 @@ void System::initSys() {
 	return;
 }
 
-void System::procedure() {
+void System::getDataLD() {
 
-	initSys();
-	double tag = 10;
+	std::cout << "Starting LD time loop: ID = " << id << std::endl;
+    unsigned int Nt;
+    unsigned int ntAtOutput;
 
-	cout << "Start time loop: ID = " << id << endl;
-	cout << "Time = " << tmax << endl;
-	unsigned int Nt = tmax / dt;
-	for(unsigned int nt = 0; nt < Nt; nt++) {
-		tDvlpBD();
+	std::ofstream tFile;
+	std::ofstream eFile;
+	std::ofstream posFile;
 
-		if ( nt >= tag) {
-			t = nt * dt;
-			recordSys();
-			tag *= 1.1;
-			//if (tag > Nt) {
-				//return;
-			//}
-		}
+	if(id == 1){
+		std::cout << "getting liniarPlot datas in 5 secs" << std::endl;
+
+		std::string tLinpltName = "/tliniar.data";
+        tFile.open((NTDir + LDDir + tLinpltName).c_str());
+
+        std::ostringstream eLinpltName;
+        eLinpltName << NTDir + LDDir + EDir << "/liniar.data";
+        eFile.open(eLinpltName.str().c_str());
+
+        std::ostringstream posLinpltName;
+        posLinpltName << NTDir + LDDir + posDir << "/liniar.data";
+        posFile.open(posLinpltName.str().c_str());
+
+        Nt = 5./dt;
+        ntAtOutput = 0;
+        for(unsigned int nt = 0; nt < Nt; nt++){
+            tEvoLD();
+            if(nt >= ntAtOutput){
+                if(id == 1){
+                    tFile << nt * dt << std::endl;
+                }
+                eFile << getK() << " " << getU() << " " << std::endl;
+                recPos(&posFile);
+                ntAtOutput += 0.1/dt;
+            }
+        }
+        posFile.close();
+        eFile.close();
+        tFile.close();
+        std::string tLogpltName = "/tlog.data";
+        tFile.open((NTDir + LDDir + tLogpltName).c_str());
 	}
 
-	return;
+	std::cout << "getting logPlot datas" << std::endl;
+    std::ostringstream eLogpltName;
+    eLogpltName << NTDir + LDDir + EDir << "/id" << id << ".data";
+    eFile.open(eLogpltName.str().c_str());
+
+    std::ostringstream posLogpltName;
+    posLogpltName << NTDir + LDDir + posDir << "/id" << id << ".data";
+    posFile.open(posLogpltName.str().c_str());
+
+    Nt = tmax/dt;
+    ntAtOutput = 10;
+    unsigned int ntAtTakingAverage = 0;
+    unsigned int NextNtAtTakingAverage = Nt>>7;
+    if(NextNtAtTakingAverage == 0){
+        NextNtAtTakingAverage = 1;
+    }
+    unsigned int numOfEnsemble = 0;
+    Eav = 0;
+    for(unsigned int nt = 0; nt <= Nt; nt++){
+        tEvoLD();
+        if(nt >= ntAtOutput){
+            if(id == 1){
+                tFile << nt * dt << std::endl;
+            }
+            eFile << getK() << " " << getU() << std::endl;
+            recPos(&posFile);
+            ntAtOutput *= 1.3;
+        }
+        if(nt >= ntAtTakingAverage){
+            Eav += getK() + getU();
+            numOfEnsemble++;
+            ntAtTakingAverage += NextNtAtTakingAverage;
+        }
+    }
+    Eav /= (float)numOfEnsemble;
+    std::cout <<"Ensemble: " <<numOfEnsemble << ", Eav = " << Eav << std::endl;
+    if(id == 1){
+        tFile.close();
+    }
+    eFile.close();
+    posFile.close();
+    std::cout << "Every LD steps have been done: ID = " << id << std::endl;
+    return;
 }
 void System::benchmark(unsigned int loop){
 	for(unsigned int nt = 0; nt < loop; nt++) {
-		tDvlpBD();
+		tEvoLD();
 	}
 }
