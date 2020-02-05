@@ -189,7 +189,7 @@ inline void System::tEvoLD() {
 		}
 	}
 	for (int i = 0; i < N; i++) {
-		p[i].xEvo(dt);
+		p[i].xEvoLD(dt);
 		periodic(i);
 	}
 	judgeUpdateCell();
@@ -215,7 +215,7 @@ inline void System::tEvoMD(){
 	}
 	}
 	for (int i = 0; i < N; i++) {
-		p[i].xEvo(dt);
+		p[i].xEvoMD(dt);
 		periodic(i);
 	}
 	judgeUpdateCell();
@@ -296,7 +296,7 @@ inline void System::tHarmonicEvo() {
 		}
 	}
 	for (int i = 0; i < N; i++) {
-		p[i].xEvo(dt);
+		p[i].xEvoLD(dt);
 		periodic(i);
 	}
 	judgeUpdateCell();

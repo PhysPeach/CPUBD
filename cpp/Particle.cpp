@@ -22,6 +22,14 @@ void Particle::vEvoLD(double dt, double thermalFuctor){
 
 	return;
 }
+void Particle::xEvoLD(double dt) {
+
+	for (char i = 0; i < D; i++) {
+		xv[i] += dt * xv[D + i];
+	}
+
+	return;
+}
 void Particle::halfvEvoMD(double dt){
 
 	for (char i = 0; i < D; i++){
@@ -33,10 +41,10 @@ void Particle::halfvEvoMD(double dt){
 
 	return;
 }
-void Particle::xEvo(double dt) {
+void Particle::xEvoMD(double dt) {
 
 	for (char i = 0; i < D; i++) {
-		xv[i] += dt * xv[D + i];
+		xv[i] += dt * (xv[D + i] + 0.5 * dt * force[i]);
 	}
 
 	return;

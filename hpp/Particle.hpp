@@ -18,8 +18,9 @@ public:
 	double force[D]; // Force from outside
 
 	void vEvoLD(double, double);
+	void xEvoLD(double);
 	void halfvEvoMD(double);
-	void xEvo(double);
+	void xEvoMD(double);
 
 
 	inline void resetx(char d, double x){ xv[d] = x; return; }
