@@ -17,9 +17,10 @@ protected:
 public:
 	double force[D]; // Force from outside
 
-	void vDvlpBD(double, double);
-	void vDvlpOD(double, double);
-	void xDvlp(double);
+	void vEvoLD(double, double);
+	void xEvoLD(double);
+	void halfvEvoMD(double);
+	void xEvoMD(double);
 
 
 	inline void resetx(char d, double x){ xv[d] = x; return; }
